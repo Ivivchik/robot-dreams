@@ -1,0 +1,2 @@
+ - Reading the configuration file to connect to the API
+ - Connect to API and upload data to disk
