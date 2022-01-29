@@ -1,10 +1,8 @@
 import json
 import requests
 import os
-import sys
 
 from requests.exceptions import RequestException
-from datetime import date
 from common.config import Config
 
 
@@ -16,13 +14,12 @@ def get_token(config):
         return requests.post(url=auth_url, headers=header, data=auth_params).json()['access_token']
     except RequestException: raise Exception("Error with API while get token")
 
-def save_response(load_date, config):
+def save_response(**kwargs):
 
+    config = Config("/home/user/airflow/dags/load-data-from-api/resources/config.yaml").get_config()
+    process_date = kwargs['ds']
     token = get_token(config)
     header = {"content-type": 'application/json', "Authorization":"JWT " + token}
-    
-    if load_date: process_date = load_date
-    else: process_date=str(date.today())
 
     path_to_output= os.path.join(config['output_directory'], process_date)
     os.makedirs(path_to_output, exist_ok=True)
@@ -36,16 +33,3 @@ def save_response(load_date, config):
         with open(os.path.join(path_to_output, config['file_name']), 'w') as json_file:
             json.dump(data, json_file)
     except RequestException: raise Exception("Error with api")
-
-
-def main():
-    argv = sys.argv[1:]
-    if (len(argv) == 0 or len(argv) > 2): load_date = None
-    else: load_date = argv[0]
-    config = Config("./resources/config.yaml").get_config()
-    save_response(load_date, config)
-
-
-
-if __name__ == '__main__':
-    main()
