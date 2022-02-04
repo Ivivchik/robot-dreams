@@ -7,6 +7,7 @@ from datetime import timedelta, datetime
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.hooks.postgres_hook import PostgresHook
+from airflow.sensors.sql_sensor import SqlSensor
 from app.read_table import read_table_from_db
 
 local_tz = pendulum.timezone("Europe/Moscow")
@@ -38,6 +39,17 @@ dag.doc_md = """
 postgresql_hook = PostgresHook(postgres_conn_id='my_postgres_connection')
 
 
+def check_table(table_name):
+    sql_sensor = SqlSensor(
+        task_id = f'sql_sensor_{table_name}',
+        conn_id = 'my_postgres_connection',
+        sql = f'SELECT COUNT(*) FROM {table_name}',
+        poke_interval = 60,
+        timeout = 60 * 5,
+        dag = dag,
+    )
+    return sql_sensor
+
 def load_table(table_name):
     load_data = PythonOperator(
         task_id = f'load_data_{table_name}',
@@ -47,7 +59,11 @@ def load_table(table_name):
     )
     return load_data
 
-list_tables_names = ['aisles', 'clients', 'departments', 'orders', 'products']
-load_tables = [load_table(table_name) for table_name in list_tables_names]
+def check_and_load(table_name):
+    res = check_table(table_name) >> load_table(table_name)
+    return res
 
-load_tables
+list_tables_names = ['aisles', 'clients', 'departments', 'orders', 'products']
+result = [check_and_load(table_name) for table_name in list_tables_names]
+
+result

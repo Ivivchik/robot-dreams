@@ -1,5 +1,6 @@
 import os
 
+
 def read_table_from_db(ds, **kwargs):
 
     table_name = kwargs['table_name']
