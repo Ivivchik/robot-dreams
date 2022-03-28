@@ -51,6 +51,13 @@ dag.doc_md = """
 # 2. Подумал ссылка не такая уж и закрытая и можно ее и в коде оставить
 # 3. Посмотрел как реализован hdfshook в  airflow,
 # там используется другая библиотека, и она не работает с python2
+# часть кода из реализации HDFSHook
+#  if not snakebite_loaded:
+#             raise ImportError(
+#                 'This HDFSHook implementation requires snakebite, but '
+#                 'snakebite is not compatible with Python 3 '
+#                 '(as of August 2015). Please use Python 2 if you require '
+#                 'this hook  -- or help by submitting a PR!')
 # 4. По лекциям надо было использовать InsecureClient
 # 5. Решил все-таки информацию о url и user, прописать в connection и
 # заодно потренироваться в написание кастомных классов
