@@ -1,1 +1,1 @@
- - Airflow DAG for connect to API and load data to disk
+ - Airflow DAG for connect to API and postgresql and load data to HDFS

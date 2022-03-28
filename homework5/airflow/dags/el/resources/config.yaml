@@ -1,0 +1,6 @@
+url: "https://robot-dreams-de-api.herokuapp.com"
+username: "rd_dreams"
+password: "djT6LasE"
+endpoint: "/out_of_stock"
+file_name: "fct_out_of_stock.json"
+output_directory: "/bronze/fct-out-of-stock"
