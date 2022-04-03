@@ -1,6 +1,8 @@
+from calendar import day_abbr
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import count, col, sum, rank, when
 from pyspark.sql.window import Window
+from pyspark.sql.dataframe import DataFrame
 
 
 spark = SparkSession \
@@ -18,7 +20,7 @@ properties = {
     'driver': 'org.postgresql.Driver'
 }
 
-def read_table_from_postgres(table_name: str):
+def read_table_from_postgres(table_name: str) -> DataFrame:
     table = spark.read.jdbc(
         url=url,
         table=table_name,
@@ -42,7 +44,7 @@ df_store = read_table_from_postgres('store')
 
 # вывести количество фильмов в каждой категории, отсортировать по убыванию
 
-def task1():
+def task1() -> DataFrame:
     df = df_film_category \
         .select(col('film_id'), col('category_id')) \
         .groupBy(col('category_id')) \
@@ -53,7 +55,7 @@ def task1():
 # вывести 10 актеров, чьи фильмы большего всего арендовали,
 # отсортировать по убыванию
 
-def task2():
+def task2() -> DataFrame:
     df_film_actor_task2 = df_film_actor.select(col('film_id'), col('actor_id'))
     df_actor_task2 = df_actor \
         .select(col('actor_id'), col('first_name'), col('last_name'))
@@ -70,7 +72,7 @@ def task2():
 
 # вывести категорию фильмов, на которую потратили больше всего денег
 
-def task3():
+def task3() -> DataFrame:
     df_film_task3 = df_film.select(col('film_id'))
     df_payment_task3 = df_payment.select(col('rental_id'), col('amount'))
     df_category_task3 = df_category.select(col('category_id'), col('name'))
@@ -94,7 +96,7 @@ def task3():
 # вывести названия фильмов, которых нет в inventory.
 # Написать запрос без использования оператора IN
 
-def task4():
+def task4() -> DataFrame:
     df_film_task4 = df_film.select(col('film_id'), col('title'))
     df_inventory_task4 = df_inventory \
         .select(col('film_id'), col('inventory_id'))
@@ -108,7 +110,7 @@ def task4():
 # которые больше всего появлялись в фильмах в категории “Children”.
 # Если у нескольких актеров одинаковое кол-во фильмов, вывести всех.
 
-def task5():
+def task5() -> DataFrame:
     window_spec_task5 = Window.orderBy(col('cnt_film').desc())
     df_film_actor_task5 = df_film_actor.select(col('film_id'), col('actor_id'))
     df_category_task5 = df_category \
@@ -133,7 +135,7 @@ def task5():
 # (активный — customer.active = 1).
 # Отсортировать по количеству неактивных клиентов по убыванию.
 
-def task6():
+def task6() -> DataFrame:
     window_spec_task6 = Window.partitionBy(col('city'))
     df_customer_task6 = df_customer \
         .select(col('customer_id'), col('address_id'), col('active'))
@@ -161,13 +163,13 @@ def task6():
 # То же самое сделать для городов в которых есть символ “-”.
 # Написать все в одном запросе.
 
-def filter_table_city_like(condition: str):
+def filter_table_city_like(condition: str) -> DataFrame:
     df = df_city \
         .filter(col('city').like(condition)) \
         .select(col('city_id'))
     return df
 
-def create_stg_df():
+def create_stg_df() -> DataFrame:
     df_film_task7 = df_film.select(col('film_id'), col('rental_duration'))
     df_film_category_task7 = df_film_category \
         .select(col('film_id'), col('category_id'))
@@ -185,7 +187,10 @@ def create_stg_df():
         .join(df_address_task7, 'address_id', 'inner')
     return df
 
-def create_film_category_by_city(stg_df, certain_city_df):
+def create_film_category_by_city(
+    stg_df: DataFrame,
+    certain_city_df: DataFrame
+) -> DataFrame:
     df = stg_df \
         .join(certain_city_df, 'city_id', 'inner') \
         .groupBy(col('name')) \
@@ -194,7 +199,7 @@ def create_film_category_by_city(stg_df, certain_city_df):
         .limit(1)
     return df
 
-def task7():
+def task7() -> DataFrame:
     stg_df = create_stg_df()
     stg_df.cache()
     df_city_start_with_a = filter_table_city_like('a%')
